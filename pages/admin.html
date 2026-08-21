@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <title>School Admin - EduOS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a>
+        <small class="nav-label">Admin</small>
+        <a class="item" data-nav="overview" href="#/overview"><i class="ico">⌂</i> Overview</a>
+        <a class="item" data-nav="setup" href="#/setup"><i class="ico">⚙</i> School Setup</a>
+        <small class="nav-label">People</small>
+        <a class="item" data-nav="teachers" href="#/teachers"><i class="ico">✎</i> Teachers</a>
+        <a class="item" data-nav="students" href="#/students"><i class="ico">☺</i> Students</a>
+        <a class="item" data-nav="parents" href="#/parents"><i class="ico">👪</i> Parents / Guardians</a>
+        <small class="nav-label">Learning</small>
+        <a class="item" data-nav="classes" href="#/classes"><i class="ico">▤</i> Classes &amp; Arms</a>
+        <a class="item" data-nav="subjects" href="#/subjects"><i class="ico">∑</i> Subjects</a>
+        <a class="item" data-nav="announcements" href="#/announcements"><i class="ico">📣</i> Announcements</a>
+        <a class="item" data-nav="results" href="#/results"><i class="ico">☑</i> Results</a>
+        <div class="side-bottom">
+          <div class="who"><b id="who-name">…</b><span id="who-school">…</span></div>
+          <button class="logout" id="logout-btn">Log out</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <h1 id="page-title">Overview</h1>
+          <span class="school-chip"><span id="chip-school">…</span><span class="code" id="chip-code">…</span></span>
+        </div>
+        <div id="alert" class="alert error"></div>
+        <div id="view"></div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const view = $('#view');
+      const alertBox = $('#alert');
+
+      const state = { me: null, school: null };
+
+      function esc(v) {
+        return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+
+      function alertMsg(msg, ok = false) {
+        alertBox.textContent = msg;
+        alertBox.className = 'alert ' + (ok ? 'ok' : 'error') + ' show';
+        clearTimeout(alertMsg._t);
+        alertMsg._t = setTimeout(() => alertBox.classList.remove('show'), 4000);
+      }
+
+      async function api(path, opts = {}) {
+        const res = await fetch('/api' + path, {
+          headers: { 'Content-Type': 'application/json' },
+          ...opts,
+          body: opts.body ? JSON.stringify(opts.body) : undefined,
+        });
+        let data = {};
+        try { data = await res.json(); } catch {}
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+      }
+
+      function setTitle(html) { $('#page-title').innerHTML = html; }
+      function setActive(name) {
+        document.querySelectorAll('.sidebar a.item').forEach((a) =>
+          a.classList.toggle('active', a.dataset.nav === name));
+      }
+      function formValues(formId) {
+        const out = {};
+        document.querySelectorAll(`#${formId} [name]`).forEach((el) => {
+          if (el.type === 'checkbox') {
+            if (el.checked) { (out[el.name] ??= []).push(el.value); }
+          } else if (el.value !== '' || !el.optional) {
+            out[el.name] = el.value;
+          }
+        });
+        return out;
+      }
+      function clearForm(formId) {
+        document.querySelectorAll(`#${formId} input, #${formId} select, #${formId} textarea`)
+          .forEach((el) => { if (el.type !== 'submit') el.value = ''; });
+      }
+      function emptyRow(cols, msg) {
+        return `<tr><td colspan="${cols}" class="empty">${msg}</td></tr>`;
+      }
+
+      async function getCounts() {
+        return (await api('/onboarding')).counts;
+      }
+
+      /* ---------------- WELCOME / ONBOARDING ---------------- */
+      async function renderWelcome() {
+        setActive('overview');
+        setTitle('Welcome to <em>EduOS</em> 👋');
+        const ob = await api('/onboarding');
+        const steps = [
+          { key: 'classes', label: 'Set up Classes & Arms', desc: 'Create your classes (JSS1, SS2…) and their arms (A, B, Science, Art).', hash: '#/classes' },
+          { key: 'subjects', label: 'Add Subjects', desc: 'Mathematics, English, Sciences… assign teachers and classes.', hash: '#/subjects' },
+          { key: 'teachers', label: 'Add Teachers', desc: 'Accounts are created instantly and credentials emailed.', hash: '#/teachers' },
+          { key: 'students', label: 'Enrol Students', desc: 'Admission numbers are generated automatically.', hash: '#/students' },
+        ];
+        view.innerHTML = `
+          <div class="card">
+            <h2>Let's set up ${esc(state.school.name)}.</h2>
+            <p class="hint">Complete these four steps and your school is ready for daily use. Everything you create is scoped to your school ID <b>${esc(state.school.code)}</b>.</p>
+            <ul class="check-list">
+              ${steps.map((s) => `
+                <li class="${ob.counts[s.key] > 0 ? 'done' : ''}">
+                  <span class="check-box">${ob.counts[s.key] > 0 ? '✓' : s.steps}</span>
+                  <div><b>${s.label}</b><p>${s.desc}</p></div>
+                  <span class="go btn ghost sm" style="cursor:pointer" onclick="location.hash='${s.hash}'">${ob.counts[s.key] > 0 ? 'Add more' : 'Start'} →</span>
+                </li>`).join('')}
+            </ul>
+            <div class="form-actions">
+              <button class="btn" onclick="finishOnboarding()">Finish setup — go to dashboard <span>→</span></button>
+              <span class="hint" style="margin:0">You can finish these anytime.</span>
+            </div>
+          </div>`;
+      }
+      async function finishOnboarding() {
+        await api('/onboarding/complete', { method: 'POST' });
+        state.me.needs_onboarding = false;
+        location.hash = '#/overview';
+      }
+
+      /* ---------------- OVERVIEW ---------------- */
+      async function renderOverview() {
+        setActive('overview');
+        setTitle('Good day, <em>' + esc(state.me.first_name) + '</em>.');
+        const c = await getCounts();
+        const cards = [
+          ['Classes & Arms', c.classes, '#/classes'],
+          ['Subjects', c.subjects, '#/subjects'],
+          ['Teachers', c.teachers, '#/teachers'],
+          ['Students', c.students, '#/students'],
+        ];
+        view.innerHTML = `
+          ${state.me.needs_onboarding ? `<div class="card note-card"><b>Welcome!</b> Finish the <a href="#/welcome" style="text-decoration:underline"><b>setup checklist</b></a> to get your school running.</div>` : ''}
+          <div class="stat-grid">
+            ${cards.map(([label, n, hash]) => `<a class="stat" href="${hash}"><b>${n}</b><span>${label}</span></a>`).join('')}
+          </div>
+          <div class="card">
+            <h2>Quick actions</h2>
+            <div class="form-actions" style="flex-wrap:wrap">
+              <button class="btn sm" onclick="location.hash='#/announcements'">📣 Post an announcement</button>
+              <button class="btn ghost sm" onclick="location.hash='#/students'">☺ Enrol a student</button>
+              <button class="btn ghost sm" onclick="location.hash='#/setup'">⚙ School profile & session</button>
+            </div>
+          </div>`;
+      }
+
+      /* ---------------- SCHOOL SETUP ---------------- */
+      async function renderSetup() {
+        setActive('setup');
+        setTitle('School <em>Setup</em>');
+        const s = await api('/school');
+        view.innerHTML = `
+          <div class="card">
+            <h2>School profile</h2>
+            <p class="hint">Shown across the platform. Your school ID (${esc(s.code)}) is permanent.</p>
+            <form id="setup-form" class="form-grid">
+              <div style="grid-column:1/-1"><label>School name</label><input name="name" value="${esc(s.name)}" required /></div>
+              <div style="grid-column:1/-1"><label>Address</label><input name="address" value="${esc(s.address || '')}" /></div>
+              <div><label>Phone</label><input name="phone" value="${esc(s.phone || '')}" /></div>
+              <div><label>Type</label><select name="type">${['Public','Private','International','Faith-based','Technical','Other'].map((t) => `<option ${s.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+              <div><label>Current session</label><input name="current_session" placeholder="2026/2027" value="${esc(s.current_session || '')}" /></div>
+              <div><label>Current term</label><select name="current_term">${['','First Term','Second Term','Third Term'].map((t) => `<option value="${t}" ${(s.current_term || '') === t ? 'selected' : ''}>${t || '— none —'}</option>`).join('')}</select></div>
+              <div class="form-actions" style="grid-column:1/-1"><button class="btn">Save changes</button></div>
+            </form>
+          </div>`;
+        $('#setup-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            await api('/school', { method: 'PATCH', body: formValues('setup-form') });
+            alertMsg('School profile saved.', true);
+            await loadIdentity();
+            paintChip();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+
+      /* ---------------- CLASSES ---------------- */
+      async function renderClasses() {
+        setActive('classes');
+        setTitle('Classes & <em>Arms</em>');
+        const [rows, teachers] = await Promise.all([api('/classes'), api('/teachers')]);
+        const teacherOpts = (sel) => `<option value="">— no class teacher —</option>` +
+          teachers.map((t) => `<option value="${t.id}" ${sel === t.id ? 'selected' : ''}>${esc(t.first_name)} ${esc(t.last_name)}</option>`).join('');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Add a class arm</h2>
+            <p class="hint">A class + arm combination, e.g. <b>JSS1 A</b> or <b>SS2 Science</b>.</p>
+            <form id="class-form" class="form-grid">
+              <div><label>Class name *</label><input name="class_name" placeholder="JSS1" required /></div>
+              <div><label>Arm</label><input name="arm" placeholder="A" /></div>
+              <div><label>Capacity</label><input name="capacity" type="number" min="1" optional /></div>
+              <div><label>Class teacher</label><select name="teacher_id">${teacherOpts()}</select></div>
+              <div class="form-actions"><button class="btn">Add class arm</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Your classes (${rows.length})</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Class</th><th>Arm</th><th>Students</th><th>Capacity</th><th>Class teacher</th><th></th></tr></thead>
+              <tbody>
+                ${rows.length === 0 ? emptyRow(6, 'No classes yet — add your first class arm above.') :
+                  rows.map((r) => `
+                  <tr>
+                    <td><b>${esc(r.class_name)}</b></td><td>${esc(r.arm)}</td>
+                    <td>${r.student_count}${r.capacity ? ' / ' + r.capacity : ''}</td>
+                    <td>${r.capacity ?? '—'}</td>
+                    <td><select onchange="assignTeacher(${r.id}, this.value)" style="padding:6px 8px;font-size:12.5px;width:auto">${teacherOpts(r.teacher_id)}</select></td>
+                    <td><button class="btn danger-ghost sm" onclick="deleteItem('classes', ${r.id}, renderClasses)">Delete</button></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        $('#class-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            await api('/classes', { method: 'POST', body: formValues('class-form') });
+            clearForm('class-form'); alertMsg('Class added.', true); renderClasses();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+      async function assignTeacher(classId, teacherId) {
+        try {
+          await api('/classes/' + classId, { method: 'PATCH', body: { teacher_id: teacherId || null } });
+          alertMsg('Class teacher updated.', true);
+        } catch (err) { alertMsg(err.message); }
+      }
+
+      /* ---------------- SUBJECTS ---------------- */
+      async function renderSubjects() {
+        setActive('subjects');
+        setTitle('<em>Subjects</em>');
+        const [rows, teachers, classes] = await Promise.all([api('/subjects'), api('/teachers'), api('/classes')]);
+        const teacherOpts = (sel) => `<option value="">— unassigned —</option>` +
+          teachers.map((t) => `<option value="${t.id}" ${sel === t.id ? 'selected' : ''}>${esc(t.first_name)} ${esc(t.last_name)}</option>`).join('');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Add a subject</h2>
+            <form id="subject-form" class="form-grid">
+              <div><label>Subject name *</label><input name="name" placeholder="Mathematics" required /></div>
+              <div><label>Code</label><input name="code" placeholder="MTH" /></div>
+              <div><label>Track</label><select name="track"><option value="core">Core</option><option value="elective">Elective</option></select></div>
+              <div><label>Teacher</label><select name="teacher_id">${teacherOpts()}</select></div>
+              <div style="grid-column:1/-1"><label>Offered to classes</label>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;padding:8px 0">
+                  ${classes.length === 0 ? '<span class="hint" style="margin:0">Create classes first to attach subjects.</span>' :
+                    classes.map((c) => `<label style="font-weight:500;display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" name="class_ids" value="${c.id}" style="width:auto">${esc(c.class_name)} ${esc(c.arm)}</label>`).join('')}
+                </div>
+              </div>
+              <div class="form-actions" style="grid-column:1/-1"><button class="btn">Add subject</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Your subjects (${rows.length})</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Subject</th><th>Track</th><th>Teacher</th><th></th></tr></thead>
+              <tbody>
+                ${rows.length === 0 ? emptyRow(4, 'No subjects yet.') :
+                  rows.map((r) => `
+                  <tr>
+                    <td><b>${esc(r.name)}</b><span class="sub">${esc(r.code || '')}</span></td>
+                    <td><span class="pill ${r.track === 'core' ? 'green' : 'grey'}">${esc(r.track)}</span></td>
+                    <td>${esc(r.teacher_name || '—')}</td>
+                    <td><button class="btn danger-ghost sm" onclick="deleteItem('subjects', ${r.id}, renderSubjects)">Delete</button></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        $('#subject-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            const body = formValues('subject-form');
+            body.class_ids = body.class_ids || [];
+            await api('/subjects', { method: 'POST', body });
+            clearForm('subject-form'); alertMsg('Subject added.', true); renderSubjects();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+
+      /* ---------------- TEACHERS ---------------- */
+      async function renderTeachers() {
+        setActive('teachers');
+        setTitle('<em>Teachers</em>');
+        const rows = await api('/teachers');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Add a teacher</h2>
+            <p class="hint">An account is created immediately and the temporary password is emailed to them (see <code>outbox/</code> in dev).</p>
+            <form id="teacher-form" class="form-grid">
+              <div><label>First name *</label><input name="first_name" required /></div>
+              <div><label>Last name *</label><input name="last_name" required /></div>
+              <div><label>Email *</label><input name="email" type="email" required /></div>
+              <div><label>Phone</label><input name="phone" optional /></div>
+              <div class="form-actions"><button class="btn">Create account</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Teaching staff (${rows.length})</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Name</th><th>Email</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                ${rows.length === 0 ? emptyRow(4, 'No teachers yet.') :
+                  rows.map((r) => `
+                  <tr>
+                    <td><b>${esc(r.first_name)} ${esc(r.last_name)}</b><span class="sub">${esc(r.phone || '')}</span></td>
+                    <td>${esc(r.email)}</td>
+                    <td><span class="pill ${r.status === 'active' ? 'green' : 'red'}">${esc(r.status)}</span></td>
+                    <td style="white-space:nowrap">
+                      <button class="btn ghost sm" onclick="toggleTeacher(${r.id}, '${r.status === 'active' ? 'inactive' : 'active'}', this)">${r.status === 'active' ? 'Deactivate' : 'Activate'}</button>
+                      <button class="btn danger-ghost sm" onclick="deleteItem('teachers', ${r.id}, renderTeachers)">Delete</button>
+                    </td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        $('#teacher-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            const r = await api('/teachers', { method: 'POST', body: formValues('teacher-form') });
+            clearForm('teacher-form'); alertMsg(r.message || 'Teacher added.', true); renderTeachers();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+      async function toggleTeacher(id, status) {
+        try {
+          await api('/teachers/' + id, { method: 'PATCH', body: { status } });
+          renderTeachers();
+        } catch (err) { alertMsg(err.message); }
+      }
+
+      /* ---------------- STUDENTS ---------------- */
+      async function renderStudents() {
+        setActive('students');
+        setTitle('<em>Students</em>');
+        const [rows, classes, parents] = await Promise.all([api('/students'), api('/classes'), api('/parents')]);
+        const classOpts = (sel) => `<option value="">— unassigned —</option>` +
+          classes.map((c) => `<option value="${c.id}" ${sel === c.id ? 'selected' : ''}>${esc(c.class_name)} ${esc(c.arm)}</option>`).join('');
+        const parentOpts = (sel) => `<option value="">— none —</option>` +
+          parents.map((p) => `<option value="${p.id}" ${sel === p.id ? 'selected' : ''}>${esc(p.first_name)} ${esc(p.last_name)}</option>`).join('');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Enrol a student</h2>
+            <p class="hint">Admission numbers are generated automatically from your school ID.</p>
+            <form id="student-form" class="form-grid">
+              <div><label>First name *</label><input name="first_name" required /></div>
+              <div><label>Last name *</label><input name="last_name" required /></div>
+              <div><label>Gender</label><select name="gender"><option value="">—</option><option>Female</option><option>Male</option></select></div>
+              <div><label>Admission date</label><input name="admission_date" type="date" optional /></div>
+              <div><label>Class / Arm</label><select name="class_arm_id">${classOpts()}</select></div>
+              <div><label>Parent / Guardian</label><select name="parent_id">${parentOpts()}</select></div>
+              <div class="form-actions"><button class="btn">Enrol student</button></div>
+            </form>
+            ${classes.length === 0 ? '<p class="hint" style="margin-top:10px">Tip: create classes first so students can be placed.</p>' : ''}
+          </div>
+          <div class="card">
+            <h2>Enrolled students (${rows.length})</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Student</th><th>Admission no.</th><th>Class</th><th>Parent / Guardian</th><th></th></tr></thead>
+              <tbody>
+                ${rows.length === 0 ? emptyRow(5, 'No students enrolled yet.') :
+                  rows.map((r) => `
+                  <tr>
+                    <td><b>${esc(r.first_name)} ${esc(r.last_name)}</b><span class="sub">${esc(r.gender || '')}</span></td>
+                    <td><span class="pill">${esc(r.admission_no)}</span></td>
+                    <td>${esc(r.class_label || '—')}</td>
+                    <td>${esc(r.parent_name || '—')}</td>
+                    <td><button class="btn danger-ghost sm" onclick="deleteItem('students', ${r.id}, renderStudents)">Delete</button></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        $('#student-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            const r = await api('/students', { method: 'POST', body: formValues('student-form') });
+            clearForm('student-form'); alertMsg(`Enrolled — admission no. ${r.admission_no}`, true); renderStudents();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+
+      /* ---------------- PARENTS ---------------- */
+      async function renderParents() {
+        setActive('parents');
+        setTitle('Parents & <em>Guardians</em>');
+        const rows = await api('/parents');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Add a parent / guardian</h2>
+            <p class="hint">Link children to them when enrolling or later. One parent can have multiple children in your school.</p>
+            <form id="parent-form" class="form-grid">
+              <div><label>First name *</label><input name="first_name" required /></div>
+              <div><label>Last name *</label><input name="last_name" required /></div>
+              <div><label>Email</label><input name="email" type="email" optional /></div>
+              <div><label>Phone</label><input name="phone" optional /></div>
+              <div class="form-actions"><button class="btn">Add parent</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Parents & guardians (${rows.length})</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Name</th><th>Contact</th><th>Children</th><th></th></tr></thead>
+              <tbody>
+                ${rows.length === 0 ? emptyRow(4, 'No parents added yet.') :
+                  rows.map((r) => `
+                  <tr>
+                    <td><b>${esc(r.first_name)} ${esc(r.last_name)}</b></td>
+                    <td>${esc(r.email || '')}<span class="sub">${esc(r.phone || '')}</span></td>
+                    <td>${esc(r.children || '—')}</td>
+                    <td><button class="btn danger-ghost sm" onclick="deleteItem('parents', ${r.id}, renderParents)">Delete</button></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table></div>
+          </div>`;
+        $('#parent-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            await api('/parents', { method: 'POST', body: formValues('parent-form') });
+            clearForm('parent-form'); alertMsg('Parent added.', true); renderParents();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+
+      /* ---------------- ANNOUNCEMENTS ---------------- */
+      async function renderAnnouncements() {
+        setActive('announcements');
+        setTitle('<em>Announcements</em>');
+        const rows = await api('/announcements');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Post an announcement</h2>
+            <p class="hint">Visible only to people in your school.</p>
+            <form id="ann-form" class="form-grid">
+              <div style="grid-column:1/-1"><label>Title *</label><input name="title" placeholder="Resumption date for Second Term" required /></div>
+              <div style="grid-column:1/-1"><label>Message *</label><textarea name="body" required></textarea></div>
+              <div><label>Audience</label><select name="audience"><option value="all">Everyone</option><option value="teachers">Teachers</option><option value="students">Students</option><option value="parents">Parents</option></select></div>
+              <div class="form-actions"><button class="btn">Post announcement</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h2>Recent announcements (${rows.length})</h2>
+            ${rows.length === 0 ? '<div class="empty">Nothing posted yet.</div>' :
+              rows.map((r) => `
+                <div style="border-bottom:1px solid #eef1ec;padding:14px 2px">
+                  <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap">
+                    <b>${esc(r.title)}</b>
+                    <span style="display:flex;gap:8px;align-items:center">
+                      <span class="pill grey">${esc(r.audience)}</span>
+                      <button class="btn danger-ghost sm" onclick="deleteItem('announcements', ${r.id}, renderAnnouncements)">Delete</button>
+                    </span>
+                  </div>
+                  <p style="margin:6px 0 0;font-size:13.5px;color:#506964;line-height:1.55">${esc(r.body)}</p>
+                  <span class="sub" style="font-size:11.5px;color:#7b8982">${esc(r.created_at)}</span>
+                </div>`).join('')}
+          </div>`;
+        $('#ann-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            await api('/announcements', { method: 'POST', body: formValues('ann-form') });
+            clearForm('ann-form'); alertMsg('Announcement posted.', true); renderAnnouncements();
+          } catch (err) { alertMsg(err.message); }
+        });
+      }
+
+      /* ---------------- RESULTS (phase 2 placeholder) ---------------- */
+      function renderResults() {
+        setActive('results');
+        setTitle('Results & <em>Report Cards</em>');
+        view.innerHTML = `
+          <div class="card">
+            <h2>Oversight</h2>
+            <p class="hint" style="margin-bottom:12px">Once the Teacher Portal ships (Phase 2), results entered by teachers will land here for your review before release to students and parents.</p>
+            <ul style="font-size:13.5px;line-height:1.8;color:#506964;margin:0;padding-left:20px">
+              <li>Review & approve submitted results before release</li>
+              <li>Grading scale & report card template settings (school logo, comments)</li>
+              <li>Automated result-release emails</li>
+            </ul>
+          </div>
+          <div class="note-card"><b>Phase 2:</b> teachers will enter test/CA and exam scores per subject per student, then submit for approval.</div>`;
+      }
+
+      /* ---------------- shared ---------------- */
+      async function deleteItem(resource, id, rerender) {
+        if (!confirm('Delete this record? This cannot be undone.')) return;
+        try {
+          await api(`/${resource}/${id}`, { method: 'DELETE' });
+          alertMsg('Deleted.', true);
+          rerender();
+        } catch (err) { alertMsg(err.message); }
+      }
+
+      function paintChip() {
+        $('#chip-school').textContent = state.school.name;
+        $('#chip-code').textContent = state.school.code;
+        $('#who-name').textContent = state.me.first_name + ' ' + state.me.last_name;
+        $('#who-school').textContent = state.school.name;
+        $('#who-school').style.color = '#7fa395';
+      }
+
+      async function loadIdentity() {
+        const me = await api('/me');
+        state.me = me.user;
+        state.school = me.school;
+      }
+
+      const routes = {
+        welcome: renderWelcome,
+        overview: renderOverview,
+        setup: renderSetup,
+        classes: renderClasses,
+        subjects: renderSubjects,
+        teachers: renderTeachers,
+        students: renderStudents,
+        parents: renderParents,
+        announcements: renderAnnouncements,
+        results: renderResults,
+      };
+
+      async function route() {
+        alertBox.classList.remove('show');
+        const name = (location.hash.replace(/^#\//, '') || (state.me.needs_onboarding ? 'welcome' : 'overview'));
+        const fn = routes[name] || renderOverview;
+        try { await fn(); } catch (err) {
+          if (String(err.message).includes('Not logged in') || String(err.message).includes('expired')) {
+            location.href = '/login';
+          } else { alertMsg(err.message); }
+        }
+        window.scrollTo(0, 0);
+      }
+
+      window.addEventListener('hashchange', route);
+      $('#logout-btn').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        location.href = '/';
+      });
+
+      (async function init() {
+        try {
+          await loadIdentity();
+          paintChip();
+          await route();
+        } catch { location.href = '/login'; }
+      })();
+    </script>
+  </body>
+</html>

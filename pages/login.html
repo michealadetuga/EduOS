@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <title>Log in - EduOS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/auth.css" />
+  </head>
+  <body>
+    <div class="top"><a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a></div>
+
+    <main class="shell">
+      <div class="card narrow">
+        <section class="form-side">
+          <div id="form-view">
+            <p class="eyebrow">WELCOME BACK</p>
+            <h2>Log in to EduOS</h2>
+            <p class="sub">School Admins, teachers and students sign in here.</p>
+
+            <div id="alert" class="alert error"></div>
+
+            <form id="login-form" novalidate>
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="you@school.com" required autocomplete="email" />
+              <br /><br />
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" required autocomplete="current-password" />
+              <br />
+              <button class="button" type="submit" id="submit-btn">Log in <span>→</span></button>
+            </form>
+            <p class="alt">New to EduOS? <a href="/signup">Create your school</a></p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
+
+    <script>
+      const form = document.getElementById('login-form');
+      const alertBox = document.getElementById('alert');
+      const btn = document.getElementById('submit-btn');
+
+      function showError(msg) {
+        alertBox.textContent = msg;
+        alertBox.classList.add('show');
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.classList.remove('show');
+        btn.disabled = true;
+        btn.textContent = 'Logging in…';
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: document.getElementById('email').value,
+              password: document.getElementById('password').value,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Login failed');
+          window.location.href = data.redirect || '/dashboard';
+        } catch (err) {
+          showError(err.message);
+          btn.disabled = false;
+          btn.innerHTML = 'Log in <span>→</span>';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <title>Verify your email - EduOS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/auth.css" />
+  </head>
+  <body>
+    <div class="top"><a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a></div>
+
+    <main class="shell">
+      <div class="card narrow">
+        <section class="form-side center">
+          <div id="state-verifying">
+            <div class="spinner"></div>
+            <h2 style="font-family:Fraunces,serif;letter-spacing:-1px">Verifying your email…</h2>
+            <p class="sub">One moment while we activate your school.</p>
+          </div>
+
+          <div id="state-success" class="success-wrap">
+            <div class="success-icon">✓</div>
+            <h2>Email verified!</h2>
+            <p>Your school is now active on EduOS. Log in to start setting things up.</p>
+            <p class="alt" style="margin-top:16px"><a class="button" style="width:auto;padding:13px 26px" href="/login">Log in <span>→</span></a></p>
+          </div>
+
+          <div id="state-error" class="success-wrap">
+            <div class="success-icon" style="background:#fbe9e4;color:#a33417">✕</div>
+            <h2>Link problem</h2>
+            <p id="error-text"></p>
+            <p class="alt" style="margin-top:16px"><a href="/login">Back to log in</a></p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
+
+    <script>
+      const token = new URLSearchParams(window.location.search).get('token');
+      const verifying = document.getElementById('state-verifying');
+      const success = document.getElementById('state-success');
+      const error = document.getElementById('state-error');
+
+      if (!token) {
+        verifying.style.display = 'none';
+        error.classList.add('show');
+        document.getElementById('error-text').textContent = 'No verification token found in this link.';
+      } else {
+        fetch('/api/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            verifying.style.display = 'none';
+            if (res.ok) {
+              success.classList.add('show');
+            } else {
+              error.classList.add('show');
+              document.getElementById('error-text').textContent = data.error || 'Verification failed.';
+            }
+          })
+          .catch(() => {
+            verifying.style.display = 'none';
+            error.classList.add('show');
+            document.getElementById('error-text').textContent = 'Network error. Please try again.';
+          });
+      }
+    </script>
+  </body>
+</html>

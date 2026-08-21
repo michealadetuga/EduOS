@@ -1,1 +1,86 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EduOS — Education infrastructure</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"></head><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <meta name="description" content="EduOS is the connected learning operating system for modern secondary schools." />
+    <title>EduOS - Every school day, connected.</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="EduOS - Every school day, connected." />
+    <meta property="og:description" content="One thoughtful place for your classes, people, learning, and progress. Built for the way secondary schools actually work." />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#top">Skip to content</a>
+    <div class="announcement">New: School onboarding is now in one seamless flow <a href="#start">See what’s included <span>→</span></a></div>
+
+    <header class="nav-shell">
+      <nav class="nav">
+        <a class="brand" href="#top" aria-label="EduOS home"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a>
+        <div class="nav-links" id="site-menu">
+          <a href="#platform">Platform <b aria-hidden="true">⌄</b></a>
+          <a href="#why-us">Why EduOS</a>
+          <a href="#schools">For schools</a>
+          <a href="#resources">Resources <b aria-hidden="true">⌄</b></a>
+        </div>
+        <div class="nav-actions">
+          <a class="login" href="/login">Log in</a>
+          <a class="button button-small" href="/signup">Get started <span>→</span></a>
+        </div>
+        <button class="menu" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">☰</button>
+      </nav>
+    </header>
+
+    <main id="top" tabindex="-1">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="live-dot"></span>THE OPERATING SYSTEM FOR MODERN SCHOOLS</p>
+          <h1>Every school day,<br /><em>connected.</em></h1>
+          <p class="hero-text">One thoughtful place for your classes, people, learning, and progress. Built for the way secondary schools actually work.</p>
+          <div class="hero-actions">
+            <a class="button" href="/signup">Start your school <span>→</span></a>
+            <a class="play-link" href="#platform"><span class="play">▶</span> See how it works</a>
+          </div>
+          <div class="trusted"><span>Designed for every part of school life</span><div class="trusted-line"></div><div class="avatars"><b>J</b><b>L</b><b>A</b><b>M</b></div><strong>Admins, teachers,<br />students & parents</strong></div>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="sun"></div><div class="grid-grid"></div>
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="dot dot-one"></div><div class="dot dot-two"></div>
+          <div class="dashboard">
+            <aside class="dash-side"><div class="mini-logo">e<span>O</span></div><div class="side-active">⌂</div><div>▣</div><div>◫</div><div>◉</div><div class="side-bottom">◌</div></aside>
+            <div class="dash-main">
+              <div class="dash-head"><div><small>Thursday, October 10</small><h3>Good morning, Zara <span>✦</span></h3></div><div class="profile"><span>⌕</span><b>ZN</b></div></div>
+              <div class="overview"><div><small>YOUR LEARNING OVERVIEW</small><h4>Let’s make today count.</h4><p>2 lessons and 1 assignment are waiting for you.</p><a href="#start" tabindex="-1">View my timetable →</a></div><div class="illustration"><div class="book"></div><div class="head"></div><div class="body"></div><div class="plant">✦</div></div></div>
+              <div class="dash-section"><h5>Up next <a href="#start" tabindex="-1">View all</a></h5><div class="lessons"><article><span class="lesson-icon purple">∑</span><div><b>Mathematics</b><small>10:00 - 10:45 AM</small></div><i>›</i></article><article><span class="lesson-icon orange">⚗</span><div><b>Chemistry</b><small>11:00 - 11:45 AM</small></div><i>›</i></article></div></div>
+              <div class="progress"><div><small>WEEKLY PROGRESS</small><b>You’re doing brilliantly!</b></div><div class="progress-chart"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            </div>
+          </div>
+          <div class="floating-card assignment"><span>☑</span><div><small>NEW ASSIGNMENT</small><b>English Literature</b><p>Due tomorrow</p></div></div>
+          <div class="floating-card score"><div class="score-circle">92<small>%</small></div><div><small>LATEST RESULT</small><b>Excellent work!</b><p>Biology · Test 3</p></div></div>
+        </div>
+      </section>
+
+      <section class="statement" id="why-us"><p class="eyebrow">SCHOOL, IN SYNC</p><h2>Less time chasing admin.<br /><em>More time shaping futures.</em></h2><p>EduOS brings the moving parts of your school together so that everyone knows what matters, and every learner gets the attention they deserve.</p></section>
+
+      <section class="features" id="platform">
+        <article class="feature-card amber"><span class="feature-number">01</span><div class="feature-icon">▦</div><h3>One home for<br />every learner.</h3><p>Classes, subjects, attendance, results, and announcements - beautifully organised in one secure space.</p><a href="#start">Explore the platform <span>→</span></a><div class="card-shape"></div></article>
+        <article class="feature-card lilac"><span class="feature-number">02</span><div class="feature-icon">↗</div><h3>Progress, made<br />visible.</h3><p>Give students and parents a clear view of learning, from daily tasks to termly performance.</p><a href="#start">See the student experience <span>→</span></a><div class="chart-bars"><i></i><i></i><i></i><i></i><i></i></div></article>
+        <article class="feature-card mint"><span class="feature-number">03</span><div class="feature-icon">✦</div><h3>Built to grow<br />with your school.</h3><p>Start simply. Add teachers, families, and new school years with confidence as your community grows.</p><a href="#start">Meet EduOS for schools <span>→</span></a><div class="card-orbit"></div></article>
+      </section>
+
+      <section class="roles" id="schools"><div class="roles-intro"><p class="eyebrow">MADE FOR THE WHOLE SCHOOL</p><h2>Different roles.<br /><em>One shared rhythm.</em></h2></div><div class="role-grid"><div><span>01</span><h3>School leaders</h3><p>See the whole school clearly, manage every essential, and set your team up to thrive.</p></div><div><span>02</span><h3>Teachers</h3><p>Keep learning moving with streamlined classes, assignments, materials and results.</p></div><div><span>03</span><h3>Students & families</h3><p>Make progress feel personal with a calm, clear view of what comes next.</p></div></div></section>
+
+      <section class="cta" id="start"><div><p class="eyebrow">READY WHEN YOU ARE</p><h2>Your school has a<br /><em>beautiful next chapter.</em></h2><p>Set up your school in minutes, not months. Your first academic session is waiting.</p><a class="button light-button" href="/signup">Create your school <span>→</span></a></div><div class="cta-mark"><span class="brand-mark"><i></i><i></i><i></i></span></div></section>
+    </main>
+
+    <footer id="resources"><a class="brand" href="#top"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a><p>Learning, beautifully connected.</p><div><a href="#platform">Platform</a><a href="#why-us">About</a><a href="/signup">Get started</a></div><small>© 2026 EduOS. Built for brighter school days.</small></footer>
+    <script>var m=document.querySelector('.menu'),n=document.getElementById('site-menu');function setMenu(o){n.classList.toggle('open',o);m.setAttribute('aria-expanded',o)}m.addEventListener('click',function(e){e.stopPropagation();setMenu(!n.classList.contains('open'))});document.addEventListener('click',function(e){if(n.classList.contains('open')&&!n.contains(e.target))setMenu(false)});n.addEventListener('click',function(e){if(e.target.closest('a'))setMenu(false)});</script>
+  </body>
+</html>

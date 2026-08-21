@@ -1,1 +1,15 @@
-{"name":"eduos-landing-page","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},"dependencies":{"@vitejs/plugin-react":"^4.4.1","vite":"^6.2.0","react":"^19.0.0","react-dom":"^19.0.0"}}
+{
+  "name": "eduos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EduOS - the connected learning operating system for modern secondary schools",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <meta name="description" content="Register your school on EduOS. Setup takes minutes." />
+    <title>Create your school - EduOS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/auth.css" />
+  </head>
+  <body>
+    <div class="top"><a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a></div>
+
+    <main class="shell">
+      <div class="card">
+        <aside class="panel">
+          <a class="brand" href="/" style="color:#fff"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a>
+          <p class="eyebrow">SCHOOL SIGN UP</p>
+          <h1>Bring your school to <em>EduOS.</em></h1>
+          <ol class="steps">
+            <li class="here"><b>1</b><span><strong>Create your school.</strong> Tell us about it and set up your admin account.</span></li>
+            <li><b>2</b><span>Verify your email to activate the school.</span></li>
+            <li><b>3</b><span>Set up classes, subjects, teachers and students.</span></li>
+          </ol>
+          <p class="panel-note">Your school gets a unique ID (like <strong>EDU-K7QM3X</strong>) that scopes every record - so your school's data stays fully private from everyone else's.</p>
+        </aside>
+
+        <section class="form-side">
+          <div id="form-view">
+            <p class="eyebrow">READY WHEN YOU ARE</p>
+            <h2>Create your school</h2>
+            <p class="sub">You'll be the School Admin - the first account for your school.</p>
+
+            <div id="alert" class="alert error"></div>
+
+            <form id="signup-form" novalidate>
+              <span class="fieldset-label">School details</span>
+              <div class="grid2">
+                <div style="grid-column:1/-1">
+                  <label for="school-name">School name *</label>
+                  <input id="school-name" name="name" type="text" placeholder="e.g. Bright Future College" required />
+                </div>
+                <div>
+                  <label for="school-type">School type *</label>
+                  <select id="school-type" name="type" required>
+                    <option value="">Select type…</option>
+                    <option>Public</option>
+                    <option>Private</option>
+                    <option>International</option>
+                    <option>Faith-based</option>
+                    <option>Technical</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="school-phone">Phone</label>
+                  <input id="school-phone" name="phone" type="tel" placeholder="e.g. +234 802 000 0000" />
+                </div>
+                <div style="grid-column:1/-1">
+                  <label for="school-address">Address *</label>
+                  <input id="school-address" name="address" type="text" placeholder="Street, city, state" required />
+                </div>
+              </div>
+
+              <span class="fieldset-label">Admin account</span>
+              <div class="grid2">
+                <div>
+                  <label for="admin-first">First name *</label>
+                  <input id="admin-first" name="first_name" type="text" placeholder="Zara" required />
+                </div>
+                <div>
+                  <label for="admin-last">Last name *</label>
+                  <input id="admin-last" name="last_name" type="text" placeholder="Nwosu" required />
+                </div>
+                <div style="grid-column:1/-1">
+                  <label for="admin-email">Email *</label>
+                  <input id="admin-email" name="email" type="email" placeholder="you@school.com" required />
+                </div>
+                <div style="grid-column:1/-1">
+                  <label for="admin-password">Password * <span style="font-weight:400;color:#7b8982">(min. 8 characters)</span></label>
+                  <input id="admin-password" name="password" type="password" minlength="8" required />
+                </div>
+              </div>
+
+              <br />
+              <button class="button" type="submit" id="submit-btn">Create your school <span>→</span></button>
+            </form>
+            <p class="alt">Already have an account? <a href="/login">Log in</a></p>
+          </div>
+
+          <div id="success-view" class="success-wrap">
+            <div class="success-icon">✓</div>
+            <h2>Almost there!</h2>
+            <p id="success-text">We've sent a verification link to your email. Confirm it to activate your school.</p>
+            <div id="dev-link" class="dev-link" style="display:none"></div>
+            <p class="alt" style="margin-top:14px"><a href="/login">Go to log in →</a></p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
+
+    <script>
+      const form = document.getElementById('signup-form');
+      const alertBox = document.getElementById('alert');
+      const btn = document.getElementById('submit-btn');
+
+      function showError(msg) {
+        alertBox.textContent = msg;
+        alertBox.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.classList.remove('show');
+        btn.disabled = true;
+        btn.textContent = 'Creating…';
+        try {
+          const res = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              school: {
+                name: document.getElementById('school-name').value,
+                type: document.getElementById('school-type').value,
+                phone: document.getElementById('school-phone').value,
+                address: document.getElementById('school-address').value,
+              },
+              admin: {
+                first_name: document.getElementById('admin-first').value,
+                last_name: document.getElementById('admin-last').value,
+                email: document.getElementById('admin-email').value,
+                password: document.getElementById('admin-password').value,
+              },
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Signup failed');
+
+          document.getElementById('form-view').style.display = 'none';
+          document.getElementById('success-view').classList.add('show');
+          document.getElementById('success-text').textContent =
+            data.message + ' Your school ID is ' + data.school_code + '.';
+          const devLink = document.getElementById('dev-link');
+          devLink.style.display = 'block';
+          devLink.innerHTML =
+            '<strong>Dev mode:</strong> no SMTP configured yet, so here is the verification link:<br /><a href="' +
+            data.verify_url + '">' + data.verify_url + '</a>';
+        } catch (err) {
+          showError(err.message);
+          btn.disabled = false;
+          btn.innerHTML = 'Create your school <span>→</span>';
+        }
+      });
+    </script>
+  </body>
+</html>
