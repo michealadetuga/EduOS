@@ -28,4 +28,20 @@ function sendVerificationEmail(email, firstName, verifyUrl) {
   });
 }
 
-module.exports = { sendVerificationEmail };
+function sendPasswordResetEmail(email, firstName, resetUrl) {
+  send({
+    to: email,
+    subject: 'Reset your password - EduOS',
+    body: [
+      `Hi ${firstName},`,
+      '',
+      'A password reset was requested for your EduOS account:',
+      '',
+      resetUrl,
+      '',
+      'This link expires in 1 hour. If this was not you, ignore this email.',
+    ].join('\n'),
+  });
+}
+
+module.exports = { send, sendVerificationEmail, sendPasswordResetEmail };

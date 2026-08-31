@@ -40,6 +40,13 @@ CREATE TABLE IF NOT EXISTS verification_tokens (
   expires_at TEXT NOT NULL,
   used_at TEXT
 );
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  used_at TEXT
+);
 CREATE TABLE IF NOT EXISTS sessions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
@@ -120,6 +127,41 @@ CREATE TABLE IF NOT EXISTS settings (
   current_session TEXT,
   current_term TEXT
 );
+CREATE TABLE IF NOT EXISTS academic_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  name TEXT NOT NULL,
+  is_current INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(school_id, name)
+);
+CREATE TABLE IF NOT EXISTS terms (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  session_id INTEGER NOT NULL REFERENCES academic_sessions(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  is_current INTEGER NOT NULL DEFAULT 0,
+  UNIQUE(session_id, name)
+);
+CREATE TABLE IF NOT EXISTS enrollments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  session_id INTEGER NOT NULL REFERENCES academic_sessions(id) ON DELETE CASCADE,
+  class_arm_id INTEGER NOT NULL REFERENCES class_arms(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(student_id, session_id)
+);
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER REFERENCES schools(id),
+  actor_user_id INTEGER REFERENCES users(id),
+  action TEXT NOT NULL,
+  entity TEXT NOT NULL,
+  entity_id INTEGER,
+  details TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `);
 
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -139,4 +181,17 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-module.exports = { db, generateSchoolCode, sha256 };
+function createDefaultSession(schoolId) {
+  const y = new Date().getFullYear();
+  const startYear = new Date().getMonth() >= 7 ? y : y - 1;
+  const name = `${startYear}/${startYear + 1}`;
+  db.prepare('INSERT OR IGNORE INTO academic_sessions (school_id, name, is_current) VALUES (?, ?, 1)').run(schoolId, name);
+  const session = db.prepare('SELECT id FROM academic_sessions WHERE school_id = ? AND name = ?').get(schoolId, name);
+  const insTerm = db.prepare('INSERT OR IGNORE INTO terms (school_id, session_id, name, is_current) VALUES (?, ?, ?, ?)');
+  insTerm.run(schoolId, session.id, 'First Term', 1);
+  insTerm.run(schoolId, session.id, 'Second Term', 0);
+  insTerm.run(schoolId, session.id, 'Third Term', 0);
+  return session.id;
+}
+
+module.exports = { db, generateSchoolCode, sha256, createDefaultSession };

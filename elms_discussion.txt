@@ -1,0 +1,315 @@
+=== Page 1 ===
+Secondary School E-Learning Platform
+ Discussion Document - For Review Before Development Begins
+This document is meant to be read and discussed together before any development starts. It lays out the full
+shape of the project as currently understood, including open questions that still need to be talked through.
+Background
+This project began as a university-focused E-Learning Management System ("Redesign and
+Implementation of E-Learning Management System"), covering course registration, attendance
+tracking, automated emails, a quiz module, digital library, past questions repository, assignment
+module, virtual classes, and institutional email auto-generation. That system was hosted on Vercel,
+Render, and MongoDB Atlas.
+We are now extending the concept to serve secondary schools as well. This is a deliberate shift in
+direction: rather than building for one specific school, the secondary school version is being designed
+as a multi-tenant platform that any secondary school can sign up for and use independently, on shared
+infrastructure.
+What Carries Over vs. What's New
+This is one of the first things worth discussing together: how much of the university system gets reused
+as-is, adapted, or rebuilt from scratch for the secondary school version.
+From University System
+Likely Status for Secondary School Version
+Course registration
+Replaced - secondary schools use class/arm placement, not
+course registration.
+Attendance tracking
+Reusable concept, adapted to class-based attendance.
+Automated emails
+Reusable - same underlying mechanism, new
+triggers/templates.
+Quiz module
+Possibly reusable with adaptation - to be discussed.
+Digital library
+Possibly reusable with adaptation - to be discussed.
+Past questions repository
+Very relevant for secondary schools (WAEC/NECO/exam prep)
+- worth prioritizing.
+Assignment module
+Reusable concept, adapted to class/subject structure.
+Virtual classes
+To be discussed - is this a priority for secondary schools at
+launch?
+Institutional email
+auto-generation
+To be discussed - needed per school, or optional?
+
+=== Page 2 ===
+Platform Model: Multi-Tenant, Self-Service
+Any secondary school will be able to register on the platform and begin using it immediately, without
+needing manual approval. Each school's data (classes, subjects, teachers, students, parents, results) is
+kept fully isolated from every other school on the platform.
+●
+Self-service signup - a school registers itself and is instantly active.
+●
+Each school is assigned a unique school identifier used to scope all of its data.
+●
+Email verification confirms the registering contact before first login.
+●
+The first person to register a school automatically becomes that school's Admin.
+●
+No cross-school visibility - one school can never see another school's data.
+Role Structure
+The platform is organized into two levels of administration, plus the day-to-day platform users:
+Role
+Scope
+Purpose
+Super Admin
+Platform-wide
+Oversees all registered schools, monitors activity, can
+suspend or reactivate a school account.
+School Admin
+One school
+Manages that school's own setup: classes, subjects,
+teachers, students, parents, results, and announcements.
+Teacher
+One school
+Manages assigned subjects/classes, enters results
+(added after Admin system is complete).
+Student
+One school
+Accesses classes, assignments, results (added after
+Admin system is complete).
+Parent/Guardian
+One school
+Views linked child(ren)'s progress and results (added after
+Admin system is complete).
+Build order: the Admin system (Super Admin + School Admin) is being built first, since Teacher,
+Student, and Parent modules all depend on the structures Admin sets up (classes, subjects, accounts).
+Role Hierarchy (Visual)
+
+=== Page 3 ===
+SUPER ADMIN (Platform)
+SCHOOL ADMIN (Per School)
+(one per registered school)
+TEACHER
+STUDENT
+PARENT/GUARDIAN
+Every school's data is isolated - no cross-school visibility except Super
+Admin
+
+=== Page 4 ===
+Module 1: Super Admin (Platform Level)
+●
+Dashboard: total schools, total users, recent signups, activity trends.
+●
+School directory: list and search all registered schools, view status (active/suspended).
+●
+Suspend or reactivate a school account.
+●
+Optional: view-only access into a school's data for support purposes.
+●
+Optional: platform-wide announcements to all School Admins.
+Module 2: School Signup & Onboarding
+●
+Public registration form: school name, address, contact email, phone, school type.
+●
+Auto-generated unique school ID created on signup, used to scope all future data.
+●
+Email verification required before first login.
+●
+First registrant is automatically granted the School Admin role.
+●
+Onboarding checklist shown on first login: set up classes, add subjects, add teachers, add students.
+Module 3: School Admin (Per-School Level)
+School Profile
+●
+School name, logo, address, contact info.
+●
+Academic session/term settings (e.g., 2026/2027, First/Second/Third Term).
+Class & Arm Management
+●
+Class name (e.g., JSS1, SS2), arm (A, B, Science, Art).
+●
+Class teacher assignment and student capacity.
+●
+Create, edit, and delete classes and arms per session.
+Subject Management
+●
+Subject name, subject code, assigned class(es) and teacher(s).
+●
+Core vs. elective subject flag for SS tracks (Science, Art, Commercial).
+Teacher Management
+●
+Full name, email, phone, assigned subjects and classes, employment status.
+●
+Admin creates teacher accounts; login credentials sent by email.
+Student Management
+●
+Full name, admission number (auto-generated), class/arm, admission date, gender, linked
+parent/guardian.
+●
+Bulk upload via CSV for adding many students at once.
+●
+Promotion/repeat action at the end of term or session.
+Parent/Guardian Linking
+●
+Full name, email, phone, linked student(s).
+●
+One parent account can link to multiple children within the same school.
+
+=== Page 5 ===
+Result / Report Card Oversight
+●
+Admin reviews and approves results entered by teachers before release.
+●
+Report card template settings: school logo, grading scale, comments section.
+Communication
+●
+Announcements visible only to that school's own teachers, students, and parents.
+●
+Automated email triggers, e.g. account creation, result release.
+Critical requirement: every record - class, subject, student, teacher, parent, result - must be scoped to its
+owning school's ID. No school should ever be able to view or access another school's data, with the sole
+exception of Super Admin oversight access.
+
+=== Page 6 ===
+Phased Roadmap
+The full platform is being built in phases, with each phase depending on the structures set up in the one
+before it.
+Phase
+Focus
+Phase 1
+Admin System - Super Admin + School Admin (current starting point)
+Phase 2
+Teacher Portal
+Phase 3
+Student Portal
+Phase 4
+Parent Portal
+Phase 5
+Enhancements
+Each phase builds on the one before it - Teacher, Student, and Parent portals all depend on structures
+(classes, subjects, accounts) that Admin sets up first. Detail on each phase below.
+Phase Flow (Visual)
+Phase 1 Admin
+Phase 2
+Teacher
+Phase 3
+Student
+Phase 4 Parent
+Phase 5
+Enhance
+
+=== Page 7 ===
+Phase 2: Teacher Portal
+Teachers log in to a school-scoped account created for them by the School Admin. Their view is limited
+to the subjects and classes assigned to them.
+Dashboard
+●
+Overview of assigned subjects, classes, and upcoming tasks (attendance to take, results to submit).
+Attendance
+●
+Mark attendance per class per day.
+●
+View attendance history for a class.
+Results & Continuous Assessment
+●
+Enter test/CA scores and exam scores per subject per student.
+●
+Submit results for Admin review before they are released to students/parents.
+Assignments
+●
+Post assignments to a class/subject with due dates.
+●
+Review and grade submissions.
+Class Materials
+●
+Upload notes or resources for a specific subject/class (ties into the digital library concept).
+Phase 3: Student Portal
+Students log in to a school-scoped account, tied to their class/arm.
+Dashboard
+●
+Overview of timetable, upcoming assignments, and recent announcements.
+Results / Report Card
+●
+View term results once released by Admin.
+●
+View cumulative/session performance.
+Assignments
+●
+View and submit assignments per subject.
+Digital Library & Past Questions
+●
+Access subject materials uploaded by teachers.
+●
+Access past questions repository for exam preparation (flagged earlier as especially relevant for
+secondary schools).
+Timetable
+●
+View class timetable for the current term.
+
+=== Page 8 ===
+Phase 4: Parent Portal
+Parents log in to an account linked to one or more students within the same school.
+Dashboard
+●
+Overview per linked child - attendance summary, recent results, announcements.
+Results
+●
+View each linked child's term results and report card once released.
+Attendance
+●
+View each linked child's attendance record.
+Communication
+●
+Receive school announcements and automated notifications (e.g., result released, fee due if in
+scope).
+Phase 5: Enhancements (Post-Core)
+Once Admin, Teacher, Student, and Parent are stable, these are worth considering as later additions -
+not part of the initial build.
+●
+Fee tracking and payment records.
+●
+Virtual/online classes.
+●
+SMS notifications alongside email.
+●
+Subscription/pricing tiers for schools, if the platform is meant to be commercially sustainable.
+
+=== Page 9 ===
+Infrastructure
+The platform will build on the same free-tier stack used for the university system: Vercel for hosting the
+frontend, Render for backend services, and MongoDB Atlas for the database. Whether this is a new
+codebase/repository or an extension of the existing one is an open question below.
+Ideas to Consider (Open for Discussion)
+A few suggestions worth discussing as the build progresses - none of these are decided yet, just
+flagged for your input:
+●
+Subscription/pricing tiers for schools (e.g., free tier with limits, paid tier for larger schools) if this is
+meant to be commercially sustainable.
+●
+A super admin support-access mode, so issues can be diagnosed for a school without needing their
+login.
+●
+Audit logging on admin actions (who created/edited/deleted a record), useful once multiple schools
+and staff are on the platform.
+●
+Whether this is a new codebase/repository or an extension of the existing university system's
+codebase.
+●
+Starting Phase 1 with a single pilot school's data even though the architecture is multi-tenant from day
+one, to validate the flow before opening signup publicly.
+●
+A rough timeline/effort estimate per phase, once scope is agreed - not fixed dates, just a sense of
+scale.
+Before We Start Building
+This document is a starting point for a conversation, not a finished spec. The goal is to go through it
+together, agree on scope for Phase 1, and settle the open questions above before any coding begins.
+●
+Read through and flag anything that doesn't match your understanding of the project.
+●
+Talk through the open questions - especially what carries over from the university system and
+codebase direction.
+●
+Agree on the exact scope of Phase 1 (Admin System) as the starting point.
+●
+Only after that's settled, move into detailed build planning for Phase 1.

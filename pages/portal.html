@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="only light" />
+    <title>Your portal - EduOS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/auth.css" />
+    <style>.portal-card{max-width:560px;padding:44px 46px;text-align:center}
+      .role-pill{display:inline-block;background:#fdf3dc;border:1px solid #efd9a0;color:#8a6414;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px}
+      .portal-card h1{font-family:Fraunces,serif;font-size:28px;letter-spacing:-1.2px;margin:0 0 10px}
+      .portal-card p{font-size:14px;color:#506964;line-height:1.65;margin:0 auto 18px;max-width:380px}
+      .logout{width:auto;background:none;color:var(--coral);box-shadow:none;border:1.5px solid #f3c4b5;padding:11px 24px}
+      .logout:hover{background:#fbe9e4}
+    </style>
+  </head>
+  <body>
+    <div class="top"><a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span>edu<span>OS</span></a></div>
+
+    <main class="shell">
+      <div class="card narrow portal-card">
+        <span class="role-pill" id="role-pill">…</span>
+        <h1>Hi <em id="first-name" style="color:var(--coral);font-style:normal">…</em>, your portal is on the way.</h1>
+        <p id="portal-msg">This area of EduOS is under construction. Your account is active and safe — we'll let you know when your portal launches.</p>
+        <button class="button logout" id="logout-btn">Log out</button>
+      </div>
+    </main>
+
+    <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
+
+    <script>
+      const roleLabels = {
+        super_admin: 'Super Admin',
+        school_admin: 'School Admin',
+        teacher: 'Teacher',
+        student: 'Student',
+        parent: 'Parent / Guardian',
+      };
+      const phaseMsg = {
+        super_admin: 'The Super Admin console (school directory, suspend/reactivate, platform stats) is the next piece we build.',
+        teacher: 'The Teacher Portal (attendance, results, assignments) ships in Phase 2.',
+        student: 'The Student Portal ships in Phase 3.',
+        parent: 'The Parent Portal ships in Phase 4.',
+      };
+      fetch('/api/me')
+        .then(async (res) => {
+          if (!res.ok) return (window.location.href = '/login');
+          const data = await res.json();
+          document.getElementById('first-name').textContent = data.user.first_name;
+          document.getElementById('role-pill').textContent = roleLabels[data.user.role] || data.user.role;
+          document.getElementById('portal-msg').textContent =
+            phaseMsg[data.user.role] || 'This area is under construction.';
+        })
+        .catch(() => (window.location.href = '/login'));
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+      });
+    </script>
+  </body>
+</html>

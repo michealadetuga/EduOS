@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="only light" />
-    <title>Log in - EduOS</title>
+    <title>Forgot password - EduOS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,23 +18,26 @@
       <div class="card narrow">
         <section class="form-side">
           <div id="form-view">
-            <p class="eyebrow">WELCOME BACK</p>
-            <h2>Log in to EduOS</h2>
-            <p class="sub">School Admins, teachers and students sign in here.</p>
+            <p class="eyebrow">PASSWORD HELP</p>
+            <h2>Forgot your password?</h2>
+            <p class="sub">Enter the email on your account and we'll send you a reset link.</p>
 
             <div id="alert" class="alert error"></div>
 
-            <form id="login-form" novalidate>
+            <form id="forgot-form" novalidate>
               <label for="email">Email</label>
               <input id="email" name="email" type="email" placeholder="you@school.com" required autocomplete="email" />
-              <br /><br />
-              <label for="password">Password</label>
-              <input id="password" name="password" type="password" required autocomplete="current-password" />
               <br />
-              <button class="button" type="submit" id="submit-btn">Log in <span>→</span></button>
+              <button class="button" type="submit" id="submit-btn">Send reset link</button>
             </form>
-            <p class="alt">New to EduOS? <a href="/signup">Create your school</a></p>
-            <p class="alt" style="margin-top:-10px"><a href="/forgot">Forgot password?</a></p>
+            <p class="alt"><a href="/login">Back to log in</a></p>
+          </div>
+
+          <div id="success-view" class="success-wrap">
+            <div class="success-icon">✉</div>
+            <h2>Check your email</h2>
+            <p>If that email exists, a reset link is on its way. It expires in 1 hour.</p>
+            <p class="alt" style="margin-top:14px"><a href="/login">Back to log in</a></p>
           </div>
         </section>
       </div>
@@ -43,36 +46,28 @@
     <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
 
     <script>
-      const form = document.getElementById('login-form');
+      const form = document.getElementById('forgot-form');
       const alertBox = document.getElementById('alert');
       const btn = document.getElementById('submit-btn');
-
-      function showError(msg) {
-        alertBox.textContent = msg;
-        alertBox.classList.add('show');
-      }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         alertBox.classList.remove('show');
         btn.disabled = true;
-        btn.textContent = 'Logging in…';
+        btn.textContent = 'Sending…';
         try {
-          const res = await fetch('/api/login', {
+          await fetch('/api/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: document.getElementById('email').value,
-              password: document.getElementById('password').value,
-            }),
+            body: JSON.stringify({ email: document.getElementById('email').value }),
           });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Login failed');
-          window.location.href = data.redirect || '/dashboard';
-        } catch (err) {
-          showError(err.message);
+          document.getElementById('form-view').style.display = 'none';
+          document.getElementById('success-view').classList.add('show');
+        } catch {
+          alertBox.textContent = 'Something went wrong. Please try again.';
+          alertBox.classList.add('show');
           btn.disabled = false;
-          btn.innerHTML = 'Log in <span>→</span>';
+          btn.textContent = 'Send reset link';
         }
       });
     </script>

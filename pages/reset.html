@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="only light" />
-    <title>Log in - EduOS</title>
+    <title>Reset password - EduOS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23153c39'/><rect x='6' y='15' width='5' height='10' rx='2.5' fill='%23f36648'/><rect x='13.5' y='7' width='5' height='18' rx='2.5' fill='%23f36648'/><rect x='21' y='11' width='5' height='14' rx='2.5' fill='%23f36648'/></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,23 +18,28 @@
       <div class="card narrow">
         <section class="form-side">
           <div id="form-view">
-            <p class="eyebrow">WELCOME BACK</p>
-            <h2>Log in to EduOS</h2>
-            <p class="sub">School Admins, teachers and students sign in here.</p>
+            <p class="eyebrow">ALMOST DONE</p>
+            <h2>Choose a new password</h2>
+            <p class="sub">Minimum 8 characters.</p>
 
             <div id="alert" class="alert error"></div>
 
-            <form id="login-form" novalidate>
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" placeholder="you@school.com" required autocomplete="email" />
+            <form id="reset-form" novalidate>
+              <label for="password">New password</label>
+              <input id="password" type="password" minlength="8" required autocomplete="new-password" />
               <br /><br />
-              <label for="password">Password</label>
-              <input id="password" name="password" type="password" required autocomplete="current-password" />
+              <label for="confirm">Confirm password</label>
+              <input id="confirm" type="password" minlength="8" required autocomplete="new-password" />
               <br />
-              <button class="button" type="submit" id="submit-btn">Log in <span>→</span></button>
+              <button class="button" type="submit" id="submit-btn">Update password</button>
             </form>
-            <p class="alt">New to EduOS? <a href="/signup">Create your school</a></p>
-            <p class="alt" style="margin-top:-10px"><a href="/forgot">Forgot password?</a></p>
+          </div>
+
+          <div id="success-view" class="success-wrap">
+            <div class="success-icon">✓</div>
+            <h2>Password updated!</h2>
+            <p>Your password has been changed and all other sessions were logged out.</p>
+            <p class="alt" style="margin-top:14px"><a href="/login">Log in with your new password →</a></p>
           </div>
         </section>
       </div>
@@ -43,36 +48,43 @@
     <footer class="mini">© 2026 EduOS · Learning, beautifully connected.</footer>
 
     <script>
-      const form = document.getElementById('login-form');
+      const token = new URLSearchParams(window.location.search).get('token');
+      const form = document.getElementById('reset-form');
       const alertBox = document.getElementById('alert');
       const btn = document.getElementById('submit-btn');
 
-      function showError(msg) {
-        alertBox.textContent = msg;
+      if (!token) {
+        form.style.display = 'none';
+        alertBox.textContent = 'No reset token found in this link.';
         alertBox.classList.add('show');
       }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         alertBox.classList.remove('show');
+        const pw = document.getElementById('password').value;
+        if (pw !== document.getElementById('confirm').value) {
+          alertBox.textContent = 'Passwords do not match.';
+          alertBox.classList.add('show');
+          return;
+        }
         btn.disabled = true;
-        btn.textContent = 'Logging in…';
+        btn.textContent = 'Updating…';
         try {
-          const res = await fetch('/api/login', {
+          const res = await fetch('/api/reset-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: document.getElementById('email').value,
-              password: document.getElementById('password').value,
-            }),
+            body: JSON.stringify({ token, password: pw }),
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Login failed');
-          window.location.href = data.redirect || '/dashboard';
+          if (!res.ok) throw new Error(data.error || 'Reset failed');
+          document.getElementById('form-view').style.display = 'none';
+          document.getElementById('success-view').classList.add('show');
         } catch (err) {
-          showError(err.message);
+          alertBox.textContent = err.message;
+          alertBox.classList.add('show');
           btn.disabled = false;
-          btn.innerHTML = 'Log in <span>→</span>';
+          btn.textContent = 'Update password';
         }
       });
     </script>

@@ -3,14 +3,17 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { db } = require('../db');
 const { send } = require('../mailer');
+const { requireAuth } = require('./auth');
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 function requireAdmin(req, res, next) {
   const auth = req.user;
   if (!auth || auth.role !== 'school_admin')
     return res.status(403).json({ error: 'School Admin access required' });
-  req.schoolId = auth.school_id;
+  req.schoolId = req.tenantContext.schoolId;
   next();
 }
 
@@ -208,7 +211,7 @@ router.post('/teachers', (req, res) => {
       message: `Account created. Credentials sent to ${email}.`,
     });
   } catch (err) {
-    db.exec('ROLLBACK');
+    try { db.exec('ROLLBACK'); } catch {}
     if (String(err.message).includes('UNIQUE'))
       return res.status(409).json({ error: 'This teacher already exists in your school' });
     throw err;
@@ -250,7 +253,7 @@ router.delete('/teachers/:id', (req, res) => {
     db.exec('COMMIT');
     res.json({ ok: true });
   } catch (err) {
-    db.exec('ROLLBACK');
+    try { db.exec('ROLLBACK'); } catch {}
     throw err;
   }
 });
