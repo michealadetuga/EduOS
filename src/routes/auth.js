@@ -3,13 +3,13 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { db, generateSchoolCode, sha256, createDefaultSession } = require('../db');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../mailer');
+const { SESSION_COOKIE, SESSION_TTL_MS, setSessionCookie, clearSessionCookie, parseCookies } = require('../middleware/cookieParser');
 
 const router = express.Router();
-const SESSION_COOKIE = 'eduos_session';
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
+const VERIFY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-function parseCookies(req) {
+// Cookie parsing is now handled by middleware, but keep this for backward compatibility
+function parseCookiesLegacy(req) {
   const header = req.headers.cookie || '';
   const out = {};
   for (const part of header.split(';')) {
@@ -19,18 +19,8 @@ function parseCookies(req) {
   return out;
 }
 
-function setSessionCookie(res, token) {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  res.setHeader(
-    'Set-Cookie',
-    `${SESSION_COOKIE}=${token}; HttpOnly; Path=/; Max-Age=${SESSION_TTL_MS / 1000}; SameSite=Lax${secure}`
-  );
-}
-
-function clearSessionCookie(res) {
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
-  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`);
-}
+// Use imported functions from middleware instead of local definitions
+// (lines 22-33 removed - using middleware/cookieParser exports)
 
 function createSession(userId) {
   const token = crypto.randomBytes(32).toString('hex');
@@ -44,7 +34,7 @@ function createSession(userId) {
 }
 
 function authenticateRequest(req, res) {
-  const token = parseCookies(req)[SESSION_COOKIE];
+  const token = req.cookies?.[SESSION_COOKIE] || parseCookiesLegacy(req)[SESSION_COOKIE];
   if (!token) return { error: 'Not logged in' };
   const row = db
     .prepare(
@@ -253,7 +243,7 @@ router.post('/login', (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  const token = parseCookies(req)[SESSION_COOKIE];
+  const token = req.cookies?.[SESSION_COOKIE] || parseCookiesLegacy(req)[SESSION_COOKIE];
   if (token) db.prepare('DELETE FROM sessions WHERE token_hash = ?').run(sha256(token));
   clearSessionCookie(res);
   res.json({ ok: true });
