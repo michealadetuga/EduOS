@@ -4,49 +4,41 @@ const crypto = require('crypto');
 const { db } = require('../db');
 const { send } = require('../mailer');
 const { requireAuth } = require('./auth');
+const { badRequest, toNumber, toString, buildPatchQuery, getOwnedRecord } = require('../utils/adminHelpers');
 
 const router = express.Router();
 
+// Apply authentication middleware
 router.use(requireAuth);
 
+/**
+ * Middleware to ensure user is a school admin
+ */
 function requireAdmin(req, res, next) {
   const auth = req.user;
-  if (!auth || auth.role !== 'school_admin')
+  if (!auth || auth.role !== 'school_admin') {
     return res.status(403).json({ error: 'School Admin access required' });
+  }
   req.schoolId = req.tenantContext.schoolId;
   next();
 }
 
 router.use(requireAdmin);
 
-function bad(res, msg) {
-  return res.status(400).json({ error: msg });
-}
+// Alias for backward compatibility with existing code
+const bad = badRequest;
+const num = toNumber;
+const str = toString;
+const patchBuilder = buildPatchQuery;
 
-function getOwned(table, id, schoolId) {
-  return db.prepare(`SELECT * FROM ${table} WHERE id = ? AND school_id = ?`).get(id, schoolId);
-}
-
-function num(v) {
-  if (v === undefined || v === null || v === '') return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-function str(v) {
-  if (typeof v !== 'string') return '';
-  return v.trim();
-}
-
-function patchBuilder(body, fields) {
-  const sets = [];
-  const vals = [];
-  for (const [key, transform] of Object.entries(fields)) {
-    if (!(key in body)) continue;
-    sets.push(`${key} = ?`);
-    vals.push(transform(body[key]));
-  }
-  return { sets, vals };
+/**
+ * Get a record owned by the current school
+ * @param {string} table - Table name
+ * @param {string|number} id - Record ID
+ * @returns {Object|undefined}
+ */
+function getOwned(table, id) {
+  return getOwnedRecord(db, table, id, req.schoolId);
 }
 
 router.get('/onboarding', (req, res) => {
