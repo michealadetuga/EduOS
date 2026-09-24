@@ -47,11 +47,13 @@ export function createApp() {
   });
   // Same-origin API: no CORS headers are emitted, so browsers block cross-origin reads by default.
 
-  app.get('/api/health', (_req, res) => {
+  const health = (_req: express.Request, res: express.Response) => {
     let db = 'ok';
     try { getDb().prepare('SELECT 1').get(); } catch { db = 'error'; }
-    res.status(db === 'ok' ? 200 : 503).json({ status: db === 'ok' ? 'ok' : 'degraded', db, env: env.NODE_ENV, time: new Date().toISOString() });
-  });
+    res.status(db === 'ok' ? 200 : 503).json({ status: db === 'ok' ? 'ok' : 'degraded', db, env: env.NODE_ENV, uptime: Math.round(process.uptime()), time: new Date().toISOString() });
+  };
+  app.get('/health', health);
+  app.get('/api/health', health);
 
   const api = express.Router();
   api.use(authenticate, csrfGuard);

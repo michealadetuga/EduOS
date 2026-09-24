@@ -69,4 +69,4 @@ legacy/   the original prototype, kept for reference (not wired in)
 
 ## Health
 
-`GET /health` → `{ status: "ok", db: "ok", version, uptime }`.
+`GET /health` (alias `/api/health`) → `{ status: "ok", db: "ok", env, uptime, time }`.
