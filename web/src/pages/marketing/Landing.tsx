@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Logo } from '@/layouts/AppShell';
 import { Button, Icon, Badge, cx } from '@/components/ui';
 
@@ -13,10 +12,10 @@ export function LandingPage() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <a href="/" className="flex items-center gap-2"><Logo /><span className="text-lg font-semibold">EduOS</span></a>
           <nav className="hidden gap-8 text-sm font-medium text-slate-600 md:flex">{nav.map(([l, h]) => <a key={h} href={h} className="hover:text-ink-900">{l}</a>)}</nav>
-          <div className="hidden items-center gap-2 md:flex"><Link to="/login"><Button variant="ghost">Sign In</Button></Link><Link to="/register"><Button>Get Started</Button></Link></div>
+          <div className="hidden items-center gap-2 md:flex"><a href="#platform"><Button>Explore EduOS</Button></a></div>
           <button className="rounded-md p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menu"><Icon.Menu /></button>
         </div>
-        {open && <div className="border-t px-4 py-3 md:hidden"><div className="flex flex-col gap-2">{nav.map(([l, h]) => <a key={h} href={h} className="py-1 text-sm" onClick={() => setOpen(false)}>{l}</a>)}<Link to="/login"><Button variant="outline" className="w-full">Sign In</Button></Link><Link to="/register"><Button className="w-full">Get Started</Button></Link></div></div>}
+        {open && <div className="border-t px-4 py-3 md:hidden"><div className="flex flex-col gap-2">{nav.map(([l, h]) => <a key={h} href={h} className="py-1 text-sm" onClick={() => setOpen(false)}>{l}</a>)}<a href="#platform" onClick={() => setOpen(false)}><Button className="w-full">Explore EduOS</Button></a></div></div>}
       </header>
 
       {/* Hero */}
@@ -27,7 +26,7 @@ export function LandingPage() {
             <Badge tone="brand" className="mb-4">Built for secondary schools · Multi-school platform</Badge>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">One platform for the entire school.</h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">Manage your school, empower your teachers, connect your students, and keep parents informed from one secure platform.</p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Link to="/register"><Button size="lg">Get Started</Button></Link><a href="#platform"><Button size="lg" variant="outline">Explore EduOS</Button></a></div>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><a href="#platform"><Button size="lg">Explore EduOS</Button></a></div>
             <p className="mt-4 text-xs text-slate-500">Free to set up. Your school's data stays isolated from every other school.</p>
           </div>
           <DashboardPreview />
@@ -108,13 +107,13 @@ export function LandingPage() {
 
       <section className="py-20"><div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
         <h2 className="text-3xl font-semibold tracking-tight">Bring your whole school onto one platform.</h2>
-        <p className="mt-3 text-slate-600">Register in two minutes. Guided onboarding does the rest.</p>
-        <div className="mt-8 flex justify-center gap-3"><Link to="/register"><Button size="lg">Get Started</Button></Link><Link to="/login"><Button size="lg" variant="outline">Sign In</Button></Link></div>
+        <p className="mt-3 text-slate-600">School sign-up opens soon. Guided onboarding does the rest.</p>
+        <div className="mt-8 flex justify-center gap-3"><a href="#platform"><Button size="lg" variant="outline">Explore EduOS</Button></a></div>
       </div></section>
 
       <footer className="border-t py-10 text-sm text-slate-500"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
         <div className="flex items-center gap-2"><Logo className="h-6 w-6" /><span className="font-medium text-ink-900">EduOS</span><span>· One platform for the entire school.</span></div>
-        <div className="flex gap-6">{nav.map(([l, h]) => <a key={h} href={h} className="hover:text-ink-900">{l}</a>)}<Link to="/login" className="hover:text-ink-900">Sign In</Link></div>
+        <div className="flex gap-6">{nav.map(([l, h]) => <a key={h} href={h} className="hover:text-ink-900">{l}</a>)}</div>
         <span>© {new Date().getFullYear()} EduOS</span>
       </div></footer>
     </div>
