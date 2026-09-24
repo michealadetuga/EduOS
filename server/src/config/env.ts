@@ -28,6 +28,7 @@ export const env = {
   EMAIL_FROM: process.env.EMAIL_FROM ?? 'EduOS <no-reply@eduos.local>',
   STORAGE_PROVIDER: process.env.STORAGE_PROVIDER ?? 'local',
   STORAGE_DIR: process.env.STORAGE_DIR ?? path.join(ROOT, 'storage'),
+  ALLOW_SCHOOL_SIGNUP: (process.env.ALLOW_SCHOOL_SIGNUP ?? (isTest ? 'true' : 'false')) === 'true',
   MAX_UPLOAD_MB: Number(process.env.MAX_UPLOAD_MB ?? 10),
   isProd: process.env.NODE_ENV === 'production',
   isTest,

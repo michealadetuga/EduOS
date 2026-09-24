@@ -6,11 +6,13 @@ import { acceptInviteSchema, changePasswordSchema, emailSchema, loginSchema, reg
 import { clearSessionCookie, readCookie, requireAuth, SESSION_COOKIE, setSessionCookie } from '../../core/auth.middleware.js';
 import { getDb } from '../../db/connection.js';
 import { env } from '../../config/env.js';
+import { forbidden } from '../../core/errors.js';
 
 export const authRouter = Router();
 const baseUrl = (req: any) => env.APP_URL || `${req.protocol}://${req.get('host')}`;
 
 authRouter.post('/register', rateLimit('register', 10, 3600_000), asyncHandler(async (req, res) => {
+  if (!env.ALLOW_SCHOOL_SIGNUP) throw forbidden('School self-registration is currently closed. Contact EduOS to onboard your school.');
   const input = parse(registerSchema, req.body);
   const out = await authService.registerSchool(input, baseUrl(req), req.ip ?? null);
   res.status(201).json({ message: 'School registered. Check your email to verify your account.', schoolCode: out.code, verifyUrl: out.verifyUrl });

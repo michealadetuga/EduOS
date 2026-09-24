@@ -19,7 +19,7 @@ export function LoginPage() {
   });
   useEffect(() => { if (me) nav(homeFor(me.user.role), { replace: true }); }, [me, nav]);
   return (
-    <AuthLayout title="Sign in to EduOS" subtitle="Use the email your school registered you with." footer={<>New school? <Link className="text-brand-700 hover:underline" to="/register">Register your school</Link></>}>
+    <AuthLayout title="Sign in to EduOS" subtitle="Use the email your school registered you with.">
       {sp.get('verified') && <Alert tone="success" className="mb-4">Email verified. You can now sign in.</Alert>}
       {sp.get('reset') && <Alert tone="success" className="mb-4">Password updated. Sign in with your new password.</Alert>}
       <form onSubmit={(e: FormEvent) => { e.preventDefault(); void act.run(); }} className="space-y-4">

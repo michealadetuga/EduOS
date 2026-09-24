@@ -3,7 +3,7 @@ import { useAuth, homeFor, RequireRole } from '@/lib/auth';
 import { AppShell, type NavGroup } from '@/layouts/AppShell';
 import { Icon, Button } from '@/components/ui';
 import { LandingPage } from '@/pages/marketing/Landing';
-import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, SetPasswordPage, ChangePasswordPage } from '@/pages/auth';
+import { LoginPage, VerifyEmailPage, ForgotPasswordPage, SetPasswordPage, ChangePasswordPage } from '@/pages/auth';
 import { AdminDashboard } from '@/pages/admin/Dashboard';
 import { OnboardingPage } from '@/pages/admin/Onboarding';
 import { SchoolProfilePage } from '@/pages/admin/SchoolProfile';
@@ -47,7 +47,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<LoginPage />} /><Route path="/register" element={<RegisterPage />} /><Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/login" element={<LoginPage />} /><Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} /><Route path="/reset-password" element={<SetPasswordPage mode="reset" />} /><Route path="/accept-invite" element={<SetPasswordPage mode="invite" />} />
       <Route path="/account/password" element={<RequireRole roles={['SUPER_ADMIN', 'SCHOOL_ADMIN', 'TEACHER', 'STUDENT', 'PARENT']}><ChangePasswordPage /></RequireRole>} />
 
