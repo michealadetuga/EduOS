@@ -1,3 +1,9 @@
-```
 node_modules/
-```
+dist/
+data/
+storage/
+outbox/
+.env
+*.db
+*.db-*
+coverage/

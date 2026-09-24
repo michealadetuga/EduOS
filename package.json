@@ -1,20 +1,17 @@
 {
   "name": "eduos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "EduOS - the connected learning operating system for modern secondary schools",
-  "main": "server.js",
+  "description": "EduOS - One platform for the entire school.",
+  "workspaces": ["server", "web"],
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node test/security.test.js"
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w server\" \"npm run dev -w web\"",
+    "build": "npm run build -w web && npm run build -w server",
+    "start": "npm run start -w server",
+    "test": "npm test -w server",
+    "seed": "npm run seed -w server",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "^6.1.1",
-    "bcryptjs": "^3.0.2",
-    "express": "^5.1.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "vite": "^8.2.2"
-  }
+  "devDependencies": { "concurrently": "^9.1.2" },
+  "engines": { "node": ">=22.5" }
 }
